@@ -1,0 +1,59 @@
+.page-content {
+    padding: 2rem clamp(1rem, 4vw, 3rem);
+    max-width: 52rem;
+    margin: 0 auto;
+    width: 100%;
+}
+
+.page-content article {
+    background-color: var(--card-background-color);
+    padding: 1.25rem 1.5rem;
+    border-radius: 8px;
+}
+
+.selections-grid {
+    display: grid;
+    gap: 0.75rem;
+}
+
+@media (min-width: 600px) {
+    .selections-grid {
+        grid-template-columns: 1fr 1fr;
+    }
+}
+
+.car-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.car-list article {
+    margin-bottom: 0;
+}
+
+.car-list footer {
+    flex-wrap: wrap;
+    gap: 0.5rem;
+}
+
+.price-badge {
+    font-size: 1.5rem;
+    font-weight: 700;
+    margin: 0.5rem 0;
+}
+
+.muted {
+    opacity: 0.85;
+    font-size: 0.95rem;
+}
+
+.error-msg {
+    color: #ffb4b4;
+    margin-bottom: 0.75rem;
+}
+
+.success-msg {
+    color: #b4ffc8;
+    margin-bottom: 0.75rem;
+}

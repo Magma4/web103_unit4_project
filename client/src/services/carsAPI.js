@@ -12,6 +12,7 @@ async function request(path, options = {}) {
         try {
             const body = await res.json()
             if (body?.error) message = body.error
+            if (body?.details) message = `${message} — ${body.details}`
         } catch {
             // ignore non-JSON error bodies
         }

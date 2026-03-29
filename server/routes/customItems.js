@@ -15,7 +15,10 @@ router.get('/', async (_req, res) => {
         res.json(items)
     } catch (err) {
         console.error(err)
-        res.status(500).json({ error: 'Failed to fetch custom items' })
+        res.status(500).json({
+            error: 'Failed to fetch custom items',
+            ...(process.env.NODE_ENV !== 'production' && { details: err.message }),
+        })
     }
 })
 
@@ -34,7 +37,10 @@ router.get('/:id', async (req, res) => {
         res.json(item)
     } catch (err) {
         console.error(err)
-        res.status(500).json({ error: 'Failed to fetch custom item' })
+        res.status(500).json({
+            error: 'Failed to fetch custom item',
+            ...(process.env.NODE_ENV !== 'production' && { details: err.message }),
+        })
     }
 })
 
@@ -53,7 +59,10 @@ router.post('/', async (req, res) => {
         res.status(201).json(item)
     } catch (err) {
         console.error(err)
-        res.status(500).json({ error: 'Failed to create custom item' })
+        res.status(500).json({
+            error: 'Failed to create custom item',
+            ...(process.env.NODE_ENV !== 'production' && { details: err.message }),
+        })
     }
 })
 
@@ -77,7 +86,10 @@ router.put('/:id', async (req, res) => {
         res.json(item)
     } catch (err) {
         console.error(err)
-        res.status(500).json({ error: 'Failed to update custom item' })
+        res.status(500).json({
+            error: 'Failed to update custom item',
+            ...(process.env.NODE_ENV !== 'production' && { details: err.message }),
+        })
     }
 })
 
@@ -96,7 +108,10 @@ router.delete('/:id', async (req, res) => {
         res.status(204).send()
     } catch (err) {
         console.error(err)
-        res.status(500).json({ error: 'Failed to delete custom item' })
+        res.status(500).json({
+            error: 'Failed to delete custom item',
+            ...(process.env.NODE_ENV !== 'production' && { details: err.message }),
+        })
     }
 })
 
