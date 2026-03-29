@@ -12,7 +12,10 @@ const app = express()
 
 app.use(express.json())
 
-app.use('/api/custom-items', customItemsRouter)
+const router = express.Router()
+router.use('/custom-items', customItemsRouter)
+
+app.use('/api', router)
 
 if (process.env.NODE_ENV === 'development') {
     app.use(favicon(path.resolve('../', 'client', 'public', 'lightning.png')))
