@@ -1,153 +1,153 @@
 import React, { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { createCar } from '../services/carsAPI'
+import { OPTION_CATALOG, getOptionPreviewUrl, calculateTotalPrice, getCarHeroImage } from '../utilities/calcPrice'
+import { validateFeatureCombination } from '../utilities/validation.js'
 import '../App.css'
-import './pages.css'
 
-const defaultSelections = () => ({
-    convertible: false,
-    exterior: '',
-    roof: '',
-    wheels: '',
-    interior: '',
-})
+const CATEGORIES = ['exterior', 'roof', 'wheels', 'interior']
 
 const CreateCar = ({ title = 'BOLT BUCKET | Customize' }) => {
     const navigate = useNavigate()
     const [name, setName] = useState('My New Car')
-    const [totalPrice, setTotalPrice] = useState(65000)
-    const [selections, setSelections] = useState(defaultSelections)
-    const [error, setError] = useState(null)
+    const [selections, setSelections] = useState({
+        convertible: false,
+        exterior: 'arctic-white',
+        roof: 'body-color',
+        wheels: '5-spoke-silver',
+        interior: 'jet-black',
+    })
+    const [activeCategory, setActiveCategory] = useState(null)
     const [submitting, setSubmitting] = useState(false)
+    const [error, setError] = useState(null)
 
     useEffect(() => {
         document.title = title
     }, [title])
 
-    const updateField = (key, value) => {
-        setSelections((prev) => ({ ...prev, [key]: value }))
+    const totalPrice = calculateTotalPrice(selections)
+
+    const updateSelection = (cat, id) => {
+        setSelections(prev => ({ ...prev, [cat]: id }))
     }
 
     const handleSubmit = async (e) => {
         e.preventDefault()
-        setError(null)
         setSubmitting(true)
+        setError(null)
+
+        const validResult = validateFeatureCombination(selections)
+        if (!validResult.valid) {
+            setError(validResult.message)
+            setSubmitting(false)
+            return
+        }
+
         try {
             await createCar({
                 name: name.trim(),
                 selections,
-                total_price: Number(totalPrice),
+                total_price: totalPrice
             })
             navigate('/customcars')
         } catch (err) {
-            setError(err.message ?? 'Could not create car')
+            setError(err.message)
         } finally {
             setSubmitting(false)
         }
     }
 
     return (
-        <main className='page-content'>
-            <article>
-                <header>
-                    <h2>Build your Bolt Bucket</h2>
-                    <p className='muted'>
-                        Name your build and set options. You can refine details later from the list.
-                    </p>
-                </header>
-
-                <form onSubmit={handleSubmit}>
-                    {error && <p className='error-msg' role='alert'>{error}</p>}
-
-                    <label htmlFor='car-name'>
-                        Name
+        <div className='page-content'>
+            <form onSubmit={handleSubmit}>
+                <div className='customizer-toolbar'>
+                    <label className='convertible-toggle'>
                         <input
-                            id='car-name'
+                            type='checkbox'
+                            checked={selections.convertible}
+                            onChange={(e) => setSelections(prev => ({ ...prev, convertible: e.target.checked }))}
+                        />
+                        Convertible
+                    </label>
+
+                    <div className='toolbar-group'>
+                        {CATEGORIES.map(cat => (
+                            <button
+                                key={cat}
+                                type='button'
+                                onClick={() => setActiveCategory(cat)}
+                            >
+                                {cat}
+                            </button>
+                        ))}
+                    </div>
+
+                    <div className='toolbar-group' style={{ marginLeft: 'auto' }}>
+                        <input
                             type='text'
+                            className='name-input'
                             value={name}
                             onChange={(e) => setName(e.target.value)}
-                            required
                             placeholder='My New Car'
-                        />
-                    </label>
-
-                    <label htmlFor='total-price'>
-                        Total price ($)
-                        <input
-                            id='total-price'
-                            type='number'
-                            min='0'
-                            step='0.01'
-                            value={totalPrice}
-                            onChange={(e) => setTotalPrice(e.target.value)}
                             required
                         />
-                    </label>
-
-                    <fieldset>
-                        <legend>Selections</legend>
-                        <div className='selections-grid'>
-                            <label htmlFor='sel-exterior'>
-                                Exterior
-                                <input
-                                    id='sel-exterior'
-                                    type='text'
-                                    value={selections.exterior}
-                                    onChange={(e) => updateField('exterior', e.target.value)}
-                                    placeholder='e.g. Red Mist Metallic'
-                                />
-                            </label>
-                            <label htmlFor='sel-roof'>
-                                Roof
-                                <input
-                                    id='sel-roof'
-                                    type='text'
-                                    value={selections.roof}
-                                    onChange={(e) => updateField('roof', e.target.value)}
-                                    placeholder='e.g. Body-color'
-                                />
-                            </label>
-                            <label htmlFor='sel-wheels'>
-                                Wheels
-                                <input
-                                    id='sel-wheels'
-                                    type='text'
-                                    value={selections.wheels}
-                                    onChange={(e) => updateField('wheels', e.target.value)}
-                                    placeholder='e.g. 19&quot; 5-spoke'
-                                />
-                            </label>
-                            <label htmlFor='sel-interior'>
-                                Interior
-                                <input
-                                    id='sel-interior'
-                                    type='text'
-                                    value={selections.interior}
-                                    onChange={(e) => updateField('interior', e.target.value)}
-                                    placeholder='e.g. Jet Black'
-                                />
-                            </label>
-                        </div>
-                        <label htmlFor='sel-convertible'>
-                            <input
-                                id='sel-convertible'
-                                type='checkbox'
-                                role='switch'
-                                checked={selections.convertible}
-                                onChange={(e) => updateField('convertible', e.target.checked)}
-                            />
-                            Convertible
-                        </label>
-                    </fieldset>
-
-                    <footer>
-                        <button type='submit' disabled={submitting} aria-busy={submitting}>
-                            {submitting ? 'Saving…' : 'Create'}
+                        <button type='submit' disabled={submitting}>
+                            {submitting ? '...' : 'Create'}
                         </button>
-                    </footer>
-                </form>
-            </article>
-        </main>
+                    </div>
+                </div>
+
+                {error && <div className='error-msg' style={{ color: '#ff4d4d', padding: '1rem', fontWeight: 'bold' }}>⚠️ {error}</div>}
+
+                <div className='hero-preview'>
+                    <img src={getCarHeroImage(selections)} alt='Car Preview' className='hero-image' />
+                </div>
+
+                <div className='price-badge-fixed'>
+                    💰 ${totalPrice.toLocaleString()}
+                </div>
+            </form>
+
+            {activeCategory && (
+                <div className='modal-overlay' onClick={() => setActiveCategory(null)}>
+                    <div className='modal-content' onClick={e => e.stopPropagation()}>
+                        <h2>{activeCategory.toUpperCase()}</h2>
+                        <div className='modal-grid'>
+                            {OPTION_CATALOG[activeCategory].map(opt => {
+                                const isSelected = selections[activeCategory] === opt.id
+                                // Stretch Feature: Pre-selection validation
+                                const validation = validateFeatureCombination({
+                                    ...selections,
+                                    [activeCategory]: opt.id
+                                })
+                                const isIncompatible = !validation.valid
+
+                                return (
+                                    <button
+                                        key={opt.id}
+                                        type='button'
+                                        className={`option-btn ${isSelected ? 'selected' : ''} ${isIncompatible ? 'incompatible' : ''}`}
+                                        style={activeCategory === 'exterior' ? { backgroundColor: opt.swatch } : {}}
+                                        onClick={() => !isIncompatible && updateSelection(activeCategory, opt.id)}
+                                        title={isIncompatible ? validation.message : ''}
+                                    >
+                                        {activeCategory !== 'exterior' && (
+                                            <img src={getOptionPreviewUrl(activeCategory, opt.id)} alt={opt.label} />
+                                        )}
+                                        <div className='option-info'>
+                                            <span className='option-name'>{opt.label}</span>
+                                            <span className='option-price'>+${opt.price}</span>
+                                            {isIncompatible && <span className='conflict-mark'>⚠️ Conflict</span>}
+                                        </div>
+                                    </button>
+                                )
+                            })}
+                        </div>
+                        <button className='done-btn' onClick={() => setActiveCategory(null)}>DONE</button>
+                    </div>
+                </div>
+            )}
+        </div>
     )
 }
 
