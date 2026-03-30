@@ -6,6 +6,7 @@ import {
     updateCustomItem,
     deleteCustomItem,
 } from '../controllers/customItems.js'
+import { validateFeatureCombination } from '../utilities/validation.js'
 
 const router = express.Router()
 
@@ -47,8 +48,9 @@ router.get('/:id', async (req, res) => {
 router.post('/', async (req, res) => {
     try {
         const { name, selections, total_price } = req.body
-        if (name == null || name === '') {
-            res.status(400).json({ error: 'name is required' })
+        const validResult = validateFeatureCombination(selections)
+        if (!validResult.valid) {
+            res.status(400).json({ error: validResult.message })
             return
         }
         const item = await createCustomItem({
@@ -74,8 +76,9 @@ router.put('/:id', async (req, res) => {
             return
         }
         const { name, selections, total_price } = req.body
-        if (name == null || name === '') {
-            res.status(400).json({ error: 'name is required' })
+        const validResult = validateFeatureCombination(selections)
+        if (!validResult.valid) {
+            res.status(400).json({ error: validResult.message })
             return
         }
         const item = await updateCustomItem(id, { name, selections, total_price })
