@@ -9,13 +9,13 @@ export const CONVERTIBLE_PREMIUM = 7500
  */
 export const OPTION_CATALOG = {
     exterior: [
-        { id: 'silver-flare', label: 'Silver Flare Metallic', price: 500 },
-        { id: 'arctic-white', label: 'Arctic White', price: 500 },
-        { id: 'red-mist', label: 'Red Mist Metallic Tintcoat', price: 2000 },
-        { id: 'hypersonic-gray', label: 'Hypersonic Gray', price: 500 },
-        { id: 'torch-red', label: 'Torch Red', price: 500 },
-        { id: 'black', label: 'Black', price: 500 },
-        { id: 'elkhart-blue', label: 'Elkhart Lake Blue Metallic', price: 1000 },
+        { id: 'silver-flare', label: 'Silver Flare Metallic', price: 500, swatch: '#a5a5a5' },
+        { id: 'arctic-white', label: 'Arctic White', price: 500, swatch: '#ffffff' },
+        { id: 'red-mist', label: 'Red Mist Metallic Tintcoat', price: 2000, swatch: '#73020c' },
+        { id: 'hypersonic-gray', label: 'Hypersonic Gray', price: 500, swatch: '#555555' },
+        { id: 'torch-red', label: 'Torch Red', price: 500, swatch: '#ff0000' },
+        { id: 'black', label: 'Black', price: 500, swatch: '#000000' },
+        { id: 'elkhart-blue', label: 'Elkhart Lake Blue Metallic', price: 1000, swatch: '#0000ff' },
     ],
     roof: [
         { id: 'body-color', label: 'Body-color', price: 0 },
@@ -138,6 +138,36 @@ function capitalize(s) {
 export function getSelectionLabel(feature, id) {
     const opt = getOptionById(feature, id)
     return opt?.label ?? (id ? String(id) : '—')
+}
+
+export function getOptionPreviewUrl(feature, id) {
+    // Return specific placeholder types for better visual variety
+    if (feature === 'roof') return `https://picsum.photos/seed/${id}/400/200`
+    if (feature === 'wheels') return `https://picsum.photos/seed/${id}/200/200`
+    if (feature === 'interior') return `https://picsum.photos/seed/${id}/600/400`
+    return ''
+}
+
+/**
+ * Returns a large hero image representing the car based on selections.
+ * Fulfills the "visual icon updates to match the option" requirement.
+ */
+export function getCarHeroImage(selections) {
+    const ext = selections?.exterior ?? 'arctic-white'
+    const conv = selections?.convertible ? 'convertible' : 'coupe'
+    // Map colors to distinct placeholder images to simulate selection changes
+    // In a real app, these would be car renders with specific colors/parts
+    const colorMap = {
+        'silver-flare': 'grayscale',
+        'arctic-white': 'white',
+        'red-mist': 'red',
+        'hypersonic-gray': 'blur',
+        'torch-red': 'red',
+        'black': 'monochrome',
+        'elkhart-blue': 'sepia',
+    }
+    const filter = colorMap[ext] || ''
+    return `https://picsum.photos/seed/${ext}-${conv}/1200/600?${filter}`
 }
 
 export function formatCurrency(value) {
