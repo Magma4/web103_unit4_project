@@ -9,31 +9,16 @@ import './App.css'
 
 const App = () => {
   let element = useRoutes([
-    {
-      path: '/',
-      element: <CreateCar title='BOLT BUCKET | Customize' />
-    },
-    {
-      path:'/customcars',
-      element: <ViewCars title='BOLT BUCKET | Custom Cars' />
-    },
-    {
-      path: '/customcars/:id',
-      element: <CarDetails title='BOLT BUCKET | View' />
-    },
-    {
-      path: '/edit/:id',
-      element: <EditCar title='BOLT BUCKET | Edit' />
-    }
+    { path: '/', element: <CreateCar /> },
+    { path: '/customcars', element: <ViewCars /> },
+    { path: '/customcars/:id', element: <CarDetails /> },
+    { path: '/edit/:id', element: <EditCar /> }
   ])
 
   return (
     <div className='app'>
-
       <Navigation />
-
-      { element }
-
+      {element}
     </div>
   )
 }

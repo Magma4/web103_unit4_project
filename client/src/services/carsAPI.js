@@ -26,7 +26,7 @@ async function request(path, options = {}) {
 export const getAllCars = () => request('')
 
 /** @returns {Promise<object>} */
-export const getCar = (id) => request(`/${id}`)
+export const getCarById = (id) => request(`/${id}`)
 
 /** @param {{ name: string, selections?: object, total_price?: number }} data */
 export const createCar = (data) =>
