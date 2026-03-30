@@ -1,8 +1,8 @@
 import React, { useCallback, useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import { deleteCar, getAllCars } from '../services/carsAPI'
+import { getSelectionLabel } from '../utilities/calcPrice'
 import '../App.css'
-import './pages.css'
 
 const formatPrice = (value) => {
     const n = Number(value)
@@ -13,18 +13,16 @@ const formatPrice = (value) => {
 const ViewCars = ({ title = 'BOLT BUCKET | Custom Cars' }) => {
     const [cars, setCars] = useState([])
     const [loading, setLoading] = useState(true)
-    const [loadError, setLoadError] = useState(null)
-    const [actionError, setActionError] = useState(null)
+    const [error, setError] = useState(null)
+    const [carToDelete, setCarToDelete] = useState(null)
 
     const loadCars = useCallback(async () => {
-        setLoadError(null)
-        setLoading(true)
         try {
+            setLoading(true)
             const data = await getAllCars()
             setCars(data)
         } catch (err) {
-            setLoadError(err.message ?? 'Failed to load cars')
-            setCars([])
+            setError(err.message)
         } finally {
             setLoading(false)
         }
@@ -32,80 +30,86 @@ const ViewCars = ({ title = 'BOLT BUCKET | Custom Cars' }) => {
 
     useEffect(() => {
         document.title = title
-    }, [title])
-
-    useEffect(() => {
         loadCars()
-    }, [loadCars])
+    }, [title, loadCars])
 
-    const handleDelete = async (id, carName) => {
-        if (!window.confirm(`Delete “${carName}”? This cannot be undone.`)) return
-        setActionError(null)
+    const confirmDelete = async () => {
+        if (!carToDelete) return
         try {
-            await deleteCar(id)
-            await loadCars()
+            await deleteCar(carToDelete)
+            setCarToDelete(null)
+            loadCars()
         } catch (err) {
-            setActionError(err.message ?? 'Could not delete car')
+            alert(err.message)
         }
     }
 
     return (
-        <main className='page-content'>
-            {loading && (
-                <article>
-                    <p className='muted'>Loading cars…</p>
-                </article>
-            )}
-
-            {!loading && loadError && (
-                <article>
-                    <p className='error-msg' role='alert'>{loadError}</p>
-                    <button type='button' onClick={loadCars}>
-                        Try again
-                    </button>
-                </article>
-            )}
-
-            {!loading && !loadError && cars.length === 0 && (
-                <article>
-                    <h2>No cars have been created yet 😔</h2>
-                    <p className='muted'>
-                        <Link to='/'>Customize</Link> a build and save it to see it here.
-                    </p>
-                </article>
-            )}
-
-            {!loading && !loadError && cars.length > 0 && (
-                <div className='car-list'>
-                    {actionError && (
-                        <p className='error-msg' role='alert' style={{ marginBottom: 0 }}>
-                            {actionError}
-                        </p>
-                    )}
-                    <h2 className='muted' style={{ marginTop: 0 }}>Your builds</h2>
-                    {cars.map((car) => (
-                        <article key={car.id}>
-                            <header>
-                                <h3>{car.name}</h3>
-                                <p className='price-badge'>{formatPrice(car.total_price)}</p>
+        <main className='page-content' style={{ padding: '2rem' }}>
+            {loading ? (
+                <p>Loading...</p>
+            ) : error ? (
+                <p style={{ color: 'red' }}>{error}</p>
+            ) : cars.length === 0 ? (
+                <div style={{ textAlign: 'center', marginTop: '4rem' }}>
+                    <h2>No builds yet</h2>
+                    <Link to='/' role='button'>Start Customizing</Link>
+                </div>
+            ) : (
+                <div className='car-grid' style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(350px, 1fr))', gap: '2rem' }}>
+                    {cars.map(car => (
+                        <article key={car.id} style={{ background: 'rgba(0,0,0,0.8)', border: '1px solid #333', borderRadius: '8px', overflow: 'hidden', padding: '1.5rem', display: 'flex', flexDirection: 'column' }}>
+                            <header style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+                                <h3 style={{ fontSize: '1.5rem' }}>{car.name}</h3>
+                                <div className='price-badge' style={{ background: 'var(--primary-red)', padding: '0.5rem', borderRadius: '4px', display: 'inline-block', marginTop: '0.5rem', fontSize: '1.25rem', fontWeight: '800' }}>
+                                    💰 {formatPrice(car.total_price)}
+                                </div>
                             </header>
-                            <footer>
-                                <Link to={`/customcars/${car.id}`} role='button'>
-                                    View
-                                </Link>
-                                <Link to={`/edit/${car.id}`} role='button'>
-                                    Edit
-                                </Link>
-                                <button
-                                    type='button'
-                                    className='secondary'
-                                    onClick={() => handleDelete(car.id, car.name)}
-                                >
-                                    Delete
-                                </button>
+                            
+                            <div style={{ flex: 1, marginBottom: '2rem' }}>
+                                <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <span>🖌️</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>EXTERIOR:</span>
+                                        <span>{getSelectionLabel('exterior', car.selections.exterior)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <span>😎</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>ROOF:</span>
+                                        <span>{getSelectionLabel('roof', car.selections.roof)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <span>🛴</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>WHEELS:</span>
+                                        <span>{getSelectionLabel('wheels', car.selections.wheels)}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', gap: '0.5rem' }}>
+                                        <span>💺</span>
+                                        <span style={{ color: 'var(--text-muted)' }}>INTERIOR:</span>
+                                        <span>{getSelectionLabel('interior', car.selections.interior)}</span>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <footer style={{ display: 'flex', gap: '1rem', marginTop: 'auto' }}>
+                                <Link to={`/customcars/${car.id}`} role='button' style={{ flex: 1 }}>DETAILS</Link>
+                                <button type='button' className='secondary' style={{ flex: 1 }} onClick={() => setCarToDelete(car.id)}>DELETE</button>
                             </footer>
                         </article>
                     ))}
+                </div>
+            )}
+
+            {carToDelete && (
+                <div className='modal-overlay' onClick={() => setCarToDelete(null)}>
+                    <div className='modal-content' onClick={e => e.stopPropagation()} style={{ maxWidth: '400px', textAlign: 'center' }}>
+                        <h2>Confirm Deletion</h2>
+                        <p>Are you sure you want to delete this custom car?</p>
+                        <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', marginTop: '2rem' }}>
+                            <button type='button' className='secondary' onClick={() => setCarToDelete(null)}>CANCEL</button>
+                            <button type='button' style={{ background: '#ff4d4d', color: 'white', border: 'none' }} onClick={confirmDelete}>DELETE</button>
+                        </div>
+                    </div>
                 </div>
             )}
         </main>
