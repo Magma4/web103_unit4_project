@@ -39,7 +39,7 @@ The following **additional** features are implemented:
 
 Here's a walkthrough of implemented required features:
 
-![Bolt Bucket Walkthrough](file:///Users/ray/.gemini/antigravity/brain/45aa7410-964c-41a7-9a52-b9a159bc2dd7/verify_custom_delete_modal_1774853177531.webp)
+![Bolt Bucket Walkthrough](./walkthrough.gif)
 
 ### Database Verification
 
